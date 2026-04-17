@@ -3,39 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pitch Trainer</title>
+<title>Tone Trainer</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-    background: #f5f4ef;
-    min-height: 100vh;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 2rem 1rem;
-    color: #1a1a18;
+    background: #f5f4ef; min-height: 100vh;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 2rem 1rem; color: #1a1a18;
   }
-  .wrap { max-width: 440px; width: 100%; }
+  .wrap { max-width: 480px; width: 100%; }
+
+  .silent-banner { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; background: #fff8e6; border: 0.5px solid #e6c96a; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 13px; color: #7a5c00; }
+  .silent-banner-text { line-height: 1.5; }
+  .silent-banner-close { background: none; border: none; cursor: pointer; font-size: 16px; color: #7a5c00; line-height: 1; padding: 0; flex-shrink: 0; opacity: 0.7; }
+  .silent-banner-close:hover { opacity: 1; }
+
   .top-row { display: flex; align-items: center; margin-bottom: 1.25rem; }
-  .mode-toggle { display: flex; border: 0.5px solid rgba(0,0,0,0.25); border-radius: 8px; overflow: hidden; background: #fff; }
-  .mode-btn {
-    padding: 7px 18px; font-size: 13px; font-family: inherit;
-    background: transparent; border: none; cursor: pointer;
-    color: #888; font-weight: 400; transition: background 0.15s;
-  }
+  .mode-toggle { display: flex; border: 0.5px solid rgba(0,0,0,0.25); border-radius: 8px; overflow: hidden; background: #fff; width: 100%; }
+  .mode-btn { flex: 1; padding: 8px 6px; font-size: 13px; font-family: inherit; background: transparent; border: none; cursor: pointer; color: #888; font-weight: 400; }
   .mode-btn.active { color: #185FA5; font-weight: 500; box-shadow: inset 0 0 0 2px #378ADD; }
+
   .score-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
   .metric { background: #e8e7e0; border-radius: 8px; padding: 0.75rem 1rem; text-align: center; }
   .metric-label { font-size: 12px; color: #666; margin-bottom: 4px; }
   .metric-value { font-size: 22px; font-weight: 500; }
   @keyframes flashGreen { 0%,100% { background: #e8e7e0; } 40% { background: #C0DD97; } }
   .metric.flash-green { animation: flashGreen 0.75s ease-out; }
-  .mid-row {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 1rem; padding: 0.75rem 1rem;
-    background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px;
-  }
+
+  .mid-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding: 0.75rem 1rem; background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; }
   .mid-left { display: flex; gap: 8px; align-items: center; min-width: 88px; }
   .mid-center { text-align: center; flex: 1; }
   .diff-pct { font-size: 24px; font-weight: 500; line-height: 1.1; }
@@ -43,106 +39,101 @@
   .mid-right { display: flex; gap: 5px; align-items: center; min-width: 88px; justify-content: flex-end; }
   .heart { font-size: 18px; transition: opacity 0.2s; }
   .heart.lost { opacity: 0.2; }
-  .lifeline-btn {
-    width: 38px; height: 38px; border-radius: 50%;
-    border: 0.5px solid rgba(0,0,0,0.2); background: #e8e7e0;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s; position: relative; overflow: hidden; padding: 0;
-  }
+
+  .practice-start { display: none; background: #e8e7e0; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; }
+  .practice-start label { font-size: 12px; color: #666; display: block; margin-bottom: 6px; }
+  .preset-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .preset-btn { padding: 5px 12px; font-size: 13px; font-family: inherit; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; background: #fff; cursor: pointer; color: #1a1a18; }
+  .preset-btn.selected { border-color: #378ADD; color: #185FA5; font-weight: 500; }
+
+  .badge-section { margin-top: 0.25rem; min-height: 44px; }
+  .badge-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .badge-label { font-size: 13px; color: #888; white-space: nowrap; }
+  @keyframes badgePop { 0% { transform: scale(0); opacity: 0; } 65% { transform: scale(1.35); } 100% { transform: scale(1); opacity: 1; } }
+  .badge-icon { font-size: 28px; cursor: default; display: inline-block; animation: badgePop 0.4s ease-out; position: relative; }
+  .badge-icon:hover::after { content: attr(data-tip); position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background: #1a1a18; color: #fff; font-size: 11px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; pointer-events: none; font-family: inherit; font-weight: 400; }
+
+  /* Face Off panels */
+  .fo-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+  .fo-panel { background: #fff; border: 2px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 0.75rem 0.6rem; text-align: center; transition: border-color 0.2s, box-shadow 0.2s, opacity 0.2s; opacity: 0.5; }
+  .fo-panel.active { border-color: #378ADD; box-shadow: 0 0 0 1px #378ADD; opacity: 1; }
+  .fo-panel.out { opacity: 0.25; }
+  .fo-name { font-size: 11px; color: #666; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .fo-score { font-size: 28px; font-weight: 500; margin-bottom: 6px; }
+  .fo-hearts { display: flex; justify-content: center; gap: 3px; margin-bottom: 8px; }
+  .fo-heart { font-size: 15px; transition: opacity 0.2s; }
+  .fo-heart.lost { opacity: 0.15; }
+  .fo-pct-box { background: #e8e7e0; border-radius: 6px; padding: 4px 6px; margin-bottom: 8px; }
+  .fo-pct { font-size: 17px; font-weight: 500; }
+  .fo-pct-sub { font-size: 9px; color: #888; }
+  .fo-replays { display: flex; justify-content: center; gap: 8px; }
+  .fo-replay-btn { width: 32px; height: 32px; border-radius: 50%; border: 0.5px solid rgba(0,0,0,0.2); background: #e8e7e0; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; padding: 0; transition: background 0.15s; }
+  .fo-replay-btn:hover:not(:disabled) { background: #d8d7d0; }
+  .fo-replay-btn:disabled { cursor: default; opacity: 0.3; }
+  .fo-replay-btn.used { opacity: 0.2; }
+  .fo-replay-btn.used::after { content: ''; position: absolute; top: 0; left: 50%; width: 2px; height: 100%; background: #1a1a18; transform: rotate(45deg); transform-origin: center; pointer-events: none; }
+  .fo-replay-btn svg { width: 20px; height: 20px; display: block; }
+  .fo-turn-label { font-size: 13px; font-weight: 500; color: #185FA5; text-align: center; margin-bottom: 0.4rem; min-height: 18px; }
+
+  /* Shared */
+  .lifeline-btn { width: 38px; height: 38px; border-radius: 50%; border: 0.5px solid rgba(0,0,0,0.2); background: #e8e7e0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; position: relative; overflow: hidden; padding: 0; }
   .lifeline-btn:hover:not(:disabled) { background: #d8d7d0; }
   .lifeline-btn:disabled { cursor: default; opacity: 0.35; }
   .lifeline-btn.used { opacity: 0.25; }
-  .lifeline-btn.used::after {
-    content: ''; position: absolute; top: 0; left: 50%;
-    width: 2px; height: 100%; background: #1a1a18;
-    transform: rotate(45deg); transform-origin: center; pointer-events: none;
-  }
+  .lifeline-btn.used::after { content: ''; position: absolute; top: 0; left: 50%; width: 2px; height: 100%; background: #1a1a18; transform: rotate(45deg); transform-origin: center; pointer-events: none; }
   .lifeline-btn svg { width: 26px; height: 26px; display: block; }
   .status { font-size: 13px; color: #888; min-height: 18px; text-align: center; margin-bottom: 0.4rem; }
   .feedback { font-size: 14px; font-weight: 500; min-height: 20px; text-align: center; margin-bottom: 0.75rem; }
   .feedback.good { color: #3B6D11; }
   .feedback.bad { color: #A32D2D; }
   .action-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1rem; }
-  .choice-btn {
-    width: 72px; height: 72px; border-radius: 12px;
-    border: 0.5px solid rgba(0,0,0,0.2); background: #fff;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s; padding: 0; flex-shrink: 0;
-  }
+  .choice-btn { width: 72px; height: 72px; border-radius: 12px; border: 0.5px solid rgba(0,0,0,0.2); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; padding: 0; flex-shrink: 0; }
   .choice-btn:hover:not(:disabled) { background: #e8e7e0; }
   .choice-btn:disabled { opacity: 0.45; cursor: default; }
   .choice-btn.correct { background: #EAF3DE; border-color: #639922; }
   .choice-btn.wrong { background: #FCEBEB; border-color: #E24B4A; }
   .choice-btn svg { width: 36px; height: 36px; }
-  .play-btn {
-    width: 80px; height: 80px; border-radius: 50%;
-    border: 0.5px solid rgba(0,0,0,0.2); background: #e8e7e0;
-    cursor: pointer; font-size: 26px; display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s; flex-shrink: 0;
-  }
+  .play-btn { width: 80px; height: 80px; border-radius: 50%; border: 0.5px solid rgba(0,0,0,0.2); background: #e8e7e0; cursor: pointer; font-size: 26px; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; }
   .play-btn:hover:not(:disabled) { background: #d8d7d0; }
   .play-btn:active:not(:disabled) { transform: scale(0.96); }
   .play-btn:disabled { opacity: 0.35; cursor: default; }
-  .practice-start {
-    display: none; background: #e8e7e0; border-radius: 8px;
-    padding: 0.75rem 1rem; margin-bottom: 1.25rem;
-  }
-  .practice-start label { font-size: 12px; color: #666; display: block; margin-bottom: 6px; }
-  .preset-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-  .preset-btn {
-    padding: 5px 12px; font-size: 13px; font-family: inherit;
-    border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px;
-    background: #fff; cursor: pointer; color: #1a1a18;
-  }
-  .preset-btn.selected { border-color: #378ADD; color: #185FA5; font-weight: 500; }
-  .badge-section { margin-top: 0.25rem; min-height: 44px; }
-  .badge-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .badge-label { font-size: 13px; color: #888; white-space: nowrap; }
-  @keyframes badgePop { 0% { transform: scale(0); opacity: 0; } 65% { transform: scale(1.35); } 100% { transform: scale(1); opacity: 1; } }
-  .badge-icon { font-size: 28px; cursor: default; display: inline-block; animation: badgePop 0.4s ease-out; position: relative; }
-  .badge-icon:hover::after {
-    content: attr(data-tip);
-    position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
-    background: #1a1a18; color: #fff; font-size: 11px; padding: 4px 8px;
-    border-radius: 6px; white-space: nowrap; pointer-events: none;
-    font-family: -apple-system, sans-serif; font-weight: 400;
-  }
-  .game-over {
-    display: none; text-align: center; padding: 2rem;
-    background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px;
-  }
+
+  .game-over { display: none; text-align: center; padding: 2rem; background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; }
   .game-over h2 { font-size: 20px; font-weight: 500; margin-bottom: 0.5rem; }
   .game-over p { font-size: 14px; color: #666; margin-bottom: 1.25rem; line-height: 1.6; }
   .drummer-msg { font-size: 13px; color: #666; margin-bottom: 1rem; }
   .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .action-btn {
-    padding: 0.7rem 1.4rem; border: 0.5px solid rgba(0,0,0,0.2);
-    border-radius: 8px; background: #e8e7e0; cursor: pointer;
-    font-size: 14px; font-family: inherit; color: #1a1a18;
-  }
+  .action-btn { padding: 0.7rem 1.4rem; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; background: #e8e7e0; cursor: pointer; font-size: 14px; font-family: inherit; color: #1a1a18; }
   .action-btn:hover { background: #d8d7d0; }
   .action-btn.blue { border-color: #378ADD; color: #185FA5; }
   .share-feedback { font-size: 12px; color: #888; margin-top: 10px; min-height: 16px; }
+  .fo-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  .fo-result-card { background: #e8e7e0; border-radius: 8px; padding: 0.75rem; text-align: center; }
+  .fo-result-card.winner { background: #EAF3DE; border: 1.5px solid #639922; }
+  .fo-result-name { font-size: 11px; color: #666; margin-bottom: 4px; }
+  .fo-result-score { font-size: 22px; font-weight: 500; }
+  .fo-result-best { font-size: 11px; color: #888; margin-top: 2px; }
 </style>
 </head>
 <body>
 <div class="wrap">
+
+  <div class="silent-banner" id="silent-banner">
+    <span class="silent-banner-text">📱 <strong>Heads up:</strong> if you're on a phone, make sure silent mode is off so you can hear the tones.</span>
+    <button class="silent-banner-close" onclick="document.getElementById('silent-banner').style.display='none'">✕</button>
+  </div>
+
   <div class="top-row">
     <div class="mode-toggle">
       <button class="mode-btn active" id="btn-challenge">Challenge</button>
+      <button class="mode-btn" id="btn-faceoff">Face Off</button>
       <button class="mode-btn" id="btn-practice">Practice</button>
     </div>
   </div>
 
-  <div class="score-row">
-    <div class="metric" id="metric-left">
-      <div class="metric-label" id="label-left">score</div>
-      <div class="metric-value" id="val-left">0</div>
-    </div>
-    <div class="metric" id="metric-right">
-      <div class="metric-label" id="label-right">round</div>
-      <div class="metric-value" id="val-right">1</div>
-    </div>
+  <div class="score-row" id="solo-score-row">
+    <div class="metric" id="metric-left"><div class="metric-label" id="label-left">score</div><div class="metric-value" id="val-left">0</div></div>
+    <div class="metric" id="metric-right"><div class="metric-label" id="label-right">round</div><div class="metric-value" id="val-right">1</div></div>
   </div>
 
   <div class="practice-start" id="practice-start">
@@ -150,20 +141,15 @@
     <div class="preset-grid" id="preset-grid"></div>
   </div>
 
+  <!-- SOLO game -->
   <div id="main-game">
     <div class="mid-row">
       <div class="mid-left" id="mid-left">
         <button class="lifeline-btn" id="ll1" disabled>
-          <svg viewBox="0 0 28 28" fill="none">
-            <path d="M4 14 A10 10 0 1 0 7.5 6.5" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-            <polygon points="2.5,1.5 9,7.5 1.5,10.5" fill="#1a1a18"/>
-          </svg>
+          <svg viewBox="0 0 28 28" fill="none"><path d="M4 14 A10 10 0 1 0 7.5 6.5" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round" fill="none"/><polygon points="2.5,1.5 9,7.5 1.5,10.5" fill="#1a1a18"/></svg>
         </button>
         <button class="lifeline-btn" id="ll2" disabled>
-          <svg viewBox="0 0 28 28" fill="none">
-            <path d="M4 14 A10 10 0 1 0 7.5 6.5" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-            <polygon points="2.5,1.5 9,7.5 1.5,10.5" fill="#1a1a18"/>
-          </svg>
+          <svg viewBox="0 0 28 28" fill="none"><path d="M4 14 A10 10 0 1 0 7.5 6.5" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round" fill="none"/><polygon points="2.5,1.5 9,7.5 1.5,10.5" fill="#1a1a18"/></svg>
         </button>
       </div>
       <div class="mid-center">
@@ -171,41 +157,82 @@
         <div class="diff-sub">of a half step</div>
       </div>
       <div class="mid-right" id="mid-right">
-        <span class="heart" id="h1">♥</span>
-        <span class="heart" id="h2">♥</span>
-        <span class="heart" id="h3">♥</span>
+        <span class="heart" id="h1">♥</span><span class="heart" id="h2">♥</span><span class="heart" id="h3">♥</span>
       </div>
     </div>
-
     <div class="status" id="status">press play to hear two tones</div>
     <div class="feedback" id="feedback"></div>
-
     <div class="action-row">
       <button class="choice-btn" id="btn-flat" disabled>
-        <svg viewBox="0 0 36 36" fill="none">
-          <line x1="18" y1="5" x2="18" y2="27" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round"/>
-          <polygon points="18,31 9,20 27,20" fill="#1a1a18"/>
-        </svg>
+        <svg viewBox="0 0 36 36" fill="none"><line x1="18" y1="5" x2="18" y2="27" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round"/><polygon points="18,31 9,20 27,20" fill="#1a1a18"/></svg>
       </button>
       <button class="play-btn" id="play-btn">▶</button>
       <button class="choice-btn" id="btn-sharp" disabled>
-        <svg viewBox="0 0 36 36" fill="none">
-          <line x1="18" y1="31" x2="18" y2="9" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round"/>
-          <polygon points="18,5 9,16 27,16" fill="#1a1a18"/>
-        </svg>
+        <svg viewBox="0 0 36 36" fill="none"><line x1="18" y1="31" x2="18" y2="9" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round"/><polygon points="18,5 9,16 27,16" fill="#1a1a18"/></svg>
       </button>
     </div>
-
     <div class="badge-section" id="badge-section">
       <div class="badge-row">
-        <span class="badge-label" id="badge-label">Badges Achieved:</span>
+        <span class="badge-label">Badges Achieved:</span>
         <span id="badge-icons"></span>
       </div>
     </div>
   </div>
 
+  <!-- FACE OFF game -->
+  <div id="faceoff-game" style="display:none">
+    <div class="fo-panels">
+      <div class="fo-panel active" id="fo-panel-0">
+        <div class="fo-name">Player 1</div>
+        <div class="fo-score" id="fo-score-0">0</div>
+        <div class="fo-hearts">
+          <span class="fo-heart" id="fo-h0-0">♥</span><span class="fo-heart" id="fo-h1-0">♥</span><span class="fo-heart" id="fo-h2-0">♥</span>
+        </div>
+        <div class="fo-pct-box"><div class="fo-pct" id="fo-pct-0">100%</div><div class="fo-pct-sub">of a half step</div></div>
+        <div class="fo-replays">
+          <button class="fo-replay-btn" id="fo-ll0-0" disabled>
+            <svg viewBox="0 0 28 28" fill="none"><path d="M4 14 A10 10 0 1 0 7.5 6.5" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round" fill="none"/><polygon points="2.5,1.5 9,7.5 1.5,10.5" fill="#1a1a18"/></svg>
+          </button>
+          <button class="fo-replay-btn" id="fo-ll1-0" disabled>
+            <svg viewBox="0 0 28 28" fill="none"><path d="M4 14 A10 10 0 1 0 7.5 6.5" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round" fill="none"/><polygon points="2.5,1.5 9,7.5 1.5,10.5" fill="#1a1a18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="fo-panel" id="fo-panel-1">
+        <div class="fo-name">Player 2</div>
+        <div class="fo-score" id="fo-score-1">0</div>
+        <div class="fo-hearts">
+          <span class="fo-heart" id="fo-h0-1">♥</span><span class="fo-heart" id="fo-h1-1">♥</span><span class="fo-heart" id="fo-h2-1">♥</span>
+        </div>
+        <div class="fo-pct-box"><div class="fo-pct" id="fo-pct-1">100%</div><div class="fo-pct-sub">of a half step</div></div>
+        <div class="fo-replays">
+          <button class="fo-replay-btn" id="fo-ll0-1" disabled>
+            <svg viewBox="0 0 28 28" fill="none"><path d="M4 14 A10 10 0 1 0 7.5 6.5" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round" fill="none"/><polygon points="2.5,1.5 9,7.5 1.5,10.5" fill="#1a1a18"/></svg>
+          </button>
+          <button class="fo-replay-btn" id="fo-ll1-1" disabled>
+            <svg viewBox="0 0 28 28" fill="none"><path d="M4 14 A10 10 0 1 0 7.5 6.5" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round" fill="none"/><polygon points="2.5,1.5 9,7.5 1.5,10.5" fill="#1a1a18"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="fo-turn-label" id="fo-turn-label">Player 1's turn</div>
+    <div class="status" id="fo-status">press play to hear two tones</div>
+    <div class="feedback" id="fo-feedback"></div>
+    <div class="action-row">
+      <button class="choice-btn" id="fo-btn-flat" disabled>
+        <svg viewBox="0 0 36 36" fill="none"><line x1="18" y1="5" x2="18" y2="27" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round"/><polygon points="18,31 9,20 27,20" fill="#1a1a18"/></svg>
+      </button>
+      <button class="play-btn" id="fo-play-btn">▶</button>
+      <button class="choice-btn" id="fo-btn-sharp" disabled>
+        <svg viewBox="0 0 36 36" fill="none"><line x1="18" y1="31" x2="18" y2="9" stroke="#1a1a18" stroke-width="2.5" stroke-linecap="round"/><polygon points="18,5 9,16 27,16" fill="#1a1a18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Game over -->
   <div class="game-over" id="game-over">
-    <h2>Game over</h2>
+    <h2 id="go-title">Game over</h2>
+    <div id="fo-result-grid" class="fo-result-grid" style="display:none"></div>
     <p id="final-msg"></p>
     <div id="drummer-msg" class="drummer-msg" style="display:none"></div>
     <div class="btn-row">
@@ -214,464 +241,425 @@
     </div>
     <div class="share-feedback" id="share-feedback"></div>
   </div>
+
 </div>
-
 <script>
-(function() {
-  const WARMUP = [100, 50, 33, 22];
-  const ROUND_THRESHOLDS = [33, 16, 10, 6, 3.25, 2, 1];
-  const AUTO_MS = 1500;
-  const FREQ_MIN = 164.81; // E3
-  const FREQ_MAX = 880;    // A5
-  const TONE_DUR = 1.3;
-  const TONE_GAP = 0.7;
-  const A3_FREQ = 220;
-  const ADVANCED_THRESHOLD = 18.7;
+(function(){
+  /* ── constants ── */
+  const WARMUP=[100,50,33,22];
+  const ROUND_THRESHOLDS=[33,16,10,6,3.25,2,1];
+  const AUTO_MS=1500, FREQ_MIN=164.81, FREQ_MAX=880, TONE_DUR=1.3, TONE_GAP=0.7, A3_FREQ=220, ADV_THR=18.7;
 
-  const PRACTICE_PRESETS = [
-    { label: 'Half Step', value: 100, warmup: true },
-    { label: '20%',       value: 20,  warmup: false },
-    { label: '10%',       value: 10,  warmup: false },
-    { label: '5%',        value: 5,   warmup: false },
+  const PRACTICE_PRESETS=[
+    {label:'Half Step',value:100,warmup:true},{label:'20%',value:20,warmup:false},
+    {label:'10%',value:10,warmup:false},{label:'5%',value:5,warmup:false}
+  ];
+  const EARLY_CORRECT=['Correct','Well done','Nice work','Great job'];
+  const ADV_CORRECT=['Awesome','Keep it up!','Impressive','Sweet!','Slay','Pop off!',"Let 'em cook!",'Huge W',"You're locked in",'Immaculate vibes','Strong aura','You should turn pro'];
+  const WRONG_MSGS=['Crashed out','Cooked','Skill issue','Taking the L',"I'm crying",'Caught in 4k',"You're giving \'bad ear\'",'It\'s the effort for me','Is everything ok?','Try again','Yikes',"How's your rhythm?"];
+  // General pools (no game-state conditions)
+  const FO_CORRECT_MSGS=["You can't touch this!",'Main character energy right there',"They're shaking rn",'The glow-up is real',"Rent free in their head",'Absolutely unhinged','W player, W moment',"Okay, Mozart, we see you.",'Pure signal, zero noise.',"That sounded like victory.",'Total Hertz hero.','Perfect pitch energy!','Your eardrums are elite.','Resonance: 100.','Frequency master in the building.','Your brain is a literal tuner.','Caught that vibration like a pro.','Sound waves bow down to you.','Sonic accuracy on point.',"You've got the golden ear.",'Decibel demon!',"No cap, your ears are cracked.",'That was a total flex.','You may be The One','Built different.','Lowkey a musical genius.','Flawless','Are you the GOAT?','Playing 4D chess','You can taste victory','Ear training? You don\'t need it.','Frequency check: Passed with flying colors.'];
+  const FO_WRONG_MSGS=["Oof, rough one","That hurt to watch","Down bad","The stumble arc","Yikes","Catastrophic","Fell off fr","That's rough buddy","Ow, that Hertz!","You should try next time","Feelin' the pressure!","Don't choke!","That's gotta sting","Not even close","You might be cooked","Bruh.","Caught you in 4K being wrong.","Delulu is not the solulu.","Did you just... guess?","Don't quit your day job","Down bad on that one.","Error 404: Pitch Not Found.","Feedback loop of failure.","It's giving... tone deaf.","Maybe try cleaning your ears?","Out of tune, out of time.","Signal lost. Please try again.","Silence would have been more accurate.","Sus behavior.","That ain't it, chief.","That frequency went right over your head.","That's a bold choice. A wrong one, but bold.","This is a major skill issue.","Total audio interference.","You're vibrating on the wrong level.","Your ear is on Airplane Mode.","The vultures are circling."];
+  // Context-specific: checked first, fall back to general pools if no condition met
+  function foContextCorrect(p, opp, oldBestDiff) {
+    const newBestDiff = p.bestDiff;
+    const matches = [];
+    // "Clutch!" — player on last life
+    if (p.lives === 1) matches.push("Clutch!");
+    // "Snatched the lead!" — just became leader in bestDiff
+    if (newBestDiff < opp.bestDiff && oldBestDiff >= opp.bestDiff) matches.push("Snatched the lead!");
+    // "You're catching up!" — was behind in bestDiff, still behind but gap is smaller
+    if (oldBestDiff > opp.bestDiff && newBestDiff > opp.bestDiff && newBestDiff < oldBestDiff) matches.push("You're catching up!");
+    // "Neck and neck!" — bestDiff within 2 percentage points
+    if (Math.abs(newBestDiff - opp.bestDiff) <= 2 && opp.totalCorrect > 0) matches.push("Neck and neck!");
+    // "The comeback arc begins" — behind in score
+    if (p.score < opp.score) matches.push("The comeback arc begins");
+    // "Your opponent is shaking right now." — currently leading in bestDiff
+    if (newBestDiff < opp.bestDiff && opp.totalCorrect > 0) matches.push("Your opponent is shaking right now.");
+    // "It's getting spicy!" — score gap within 2% of leader's score, p was losing
+    if (p.score > 0 && opp.score > 0 && p.score < opp.score) {
+      const gap = opp.score - p.score;
+      if (gap / opp.score <= 0.02) matches.push("It's getting spicy!");
+    }
+    // "You don't stand a chance." — current player has higher score
+    if (p.score > opp.score) matches.push("You don't stand a chance.");
+    if (!matches.length) return null;
+    return matches[Math.floor(Math.random() * matches.length)];
+  }
+  function foContextWrong(p, opp) {
+    const matches = [];
+    // "Ratio incoming" — opponent ahead by 30%+ in score
+    if (opp.score > 0 && (p.score === 0 || opp.score / p.score >= 1.3)) matches.push("Ratio incoming");
+    // "Flat... like your chances of winning." — losing in both score and bestDiff
+    if (p.score < opp.score && p.bestDiff > opp.bestDiff) matches.push("Flat... like your chances of winning.");
+    // "Your opponent is laughing in 440Hz." — opponent ahead in score
+    if (opp.score > p.score) matches.push("Your opponent is laughing in 440Hz.");
+    if (!matches.length) return null;
+    return matches[Math.floor(Math.random() * matches.length)];
+  }
+  const BADGE_DEFS=[
+    {id:'musician',emoji:'🎻',alt:'Musician Badge', value:9.8,  comment:'You must be a musician!'},
+    {id:'mozart',  emoji:'🎹',alt:'Mozart Badge',   value:5.1,  comment:"You're a musical prodigy!"},
+    {id:'bat',     emoji:'🦇',alt:'Bat Badge',      value:2.7,  comment:'You have supersonic hearing!'},
+    {id:'robot',   emoji:'🤖',alt:'Robot Badge',    value:1.0,  comment:'Are you even human?'},
+    {id:'fire',    emoji:'🔥',alt:'On Fire',        value:10,   comment:'3 in a row below 10%!',streak:true},
+    {id:'whale',   emoji:'🐋',alt:'Whale Whisperer',value:A3_FREQ,comment:"You're great with low tones",lowfreq:true},
   ];
 
-  // Comments — no periods, keep exclamation points
-  const EARLY_CORRECT = ['Correct', 'Well done', 'Nice work', 'Great job'];
-  const ADVANCED_CORRECT = [
-    'Awesome', 'Keep it up!', 'Impressive', 'Sweet!', 'Slay',
-    'Pop off!', 'Let them cook!', 'Huge W', "You're locked in",
-    'Immaculate vibes', 'Strong aura', 'You should turn pro'
-  ];
-  const FIRE_COMMENT = "You're on fire!";
-  const WRONG_MSGS = [
-    'Crashed out', 'Cooked', 'Skill issue', 'Taking the L',
-    "I'm crying", 'Caught in 4k', "You're giving 'bad ear'",
-    "It's the effort for me", 'Is everything ok?', 'Try again',
-    'Yikes', "How's your rhythm?"
-  ];
+  /* ── helpers ── */
+  const $=id=>document.getElementById(id);
+  function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function fmtPct(d){return(d>=1?d.toFixed(1):d.toFixed(2))+'%';}
 
-  // Badges: id, emoji, alt text, threshold type, threshold value
-  const BADGE_DEFS = [
-    { id: 'musician', emoji: '🎻', alt: 'Musician Badge',  type: 'diff',     value: 9.8  },
-    { id: 'mozart',   emoji: '🎹', alt: 'Mozart Badge',            type: 'diff',     value: 5.1  },
-    { id: 'bat',      emoji: '🦇', alt: 'Bat Badge',       type: 'diff',     value: 2.7  },
-    { id: 'robot',    emoji: '🤖', alt: 'Are you even human?',      type: 'diff',     value: 1.0  },
-    { id: 'fire',     emoji: '🔥', alt: 'On Fire',                  type: 'streak15', value: 3    },
-    { id: 'whale',    emoji: '🐋', alt: 'Whale Whisperer',          type: 'lowfreq',  value: 3    },
-  ];
+  /* ── audio ── */
+  let audioCtx=null;
+  function getCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+  function playTone(freq,t0,dur,ctx){
+    const osc=ctx.createOscillator(),g=ctx.createGain();
+    osc.connect(g);g.connect(ctx.destination);osc.type='sine';
+    osc.frequency.setValueAtTime(freq,t0);
+    g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(0.35,t0+0.05);
+    g.gain.setValueAtTime(0.35,t0+dur-0.05);g.gain.linearRampToValueAtTime(0,t0+dur);
+    osc.start(t0);osc.stop(t0+dur);
+  }
+  function playPair(f1,f2){
+    const ctx=getCtx(),now=ctx.currentTime+0.05;
+    playTone(f1,now,TONE_DUR,ctx);playTone(f2,now+TONE_DUR+TONE_GAP,TONE_DUR,ctx);
+    return(TONE_DUR+TONE_GAP+TONE_DUR+0.15)*1000;
+  }
+  function semitoneRatio(pct){return Math.pow(2,pct/1200);}
 
-  function shuffle(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
+  /* ══════════════════════════════════
+     SOLO STATE
+  ══════════════════════════════════ */
+  let appMode='challenge';
+  let practiceWarmup=true,selectedPresetIdx=0;
+  let score=0,totalCorrect=0,attempted=0;
+  let difficulty=100,lives=3,lifelinesLeft=2;
+  let bestDiff=100,sessionStartDiff=100,lastCorrectDiff=100,consecutiveWrong=0;
+  let answered=false,correctAnswer=null,lastBaseFreq=null,lastSecondFreq=null;
+  let hasPlayed=false,isFirst=true,advTimer=null,ll1Used=false,ll2Used=false;
+  let roundLevel=1,lowFreqCount=0,streak10=0,badgesEarned={};
+  let advMode=false,earlyIdx=0,advPool=[],wrongPool=[];
+
+  function useWarmup(){return appMode!=='practice'||practiceWarmup;}
+  function nextDiff(){if(useWarmup()&&totalCorrect<WARMUP.length)return WARMUP[totalCorrect];return Math.max(difficulty*0.85,0.1);}
+
+  function getCorrectComment(d){
+    if(!advMode&&d<=ADV_THR){advMode=true;advPool=shuffle(ADV_CORRECT);}
+    if(!advMode)return EARLY_CORRECT[earlyIdx++%EARLY_CORRECT.length];
+    if(!advPool.length)advPool=shuffle(ADV_CORRECT);
+    return advPool.pop();
+  }
+  function getWrongComment(){if(!wrongPool.length)wrongPool=shuffle(WRONG_MSGS);return wrongPool.pop();}
+
+  function earnBadge(id){
+    if(badgesEarned[id])return false;
+    badgesEarned[id]=true;
+    const def=BADGE_DEFS.find(b=>b.id===id);if(!def)return false;
+    const span=document.createElement('span');
+    span.className='badge-icon';span.textContent=def.emoji;
+    span.setAttribute('data-tip',def.alt);span.title=def.alt;
+    $('badge-icons').appendChild(span);return true;
+  }
+  function checkBadges(diff,baseFreq,correct){
+    if(!correct){streak10=0;return null;}
+    let comment=null;
+    if(diff<=10){streak10++;if(streak10>=3&&!badgesEarned.fire&&earnBadge('fire'))comment=BADGE_DEFS.find(b=>b.id==='fire').comment;}else streak10=0;
+    if(diff<=9.8 &&!badgesEarned.musician&&earnBadge('musician')&&!comment)comment=BADGE_DEFS.find(b=>b.id==='musician').comment;
+    if(diff<=5.1 &&!badgesEarned.mozart  &&earnBadge('mozart')  &&!comment)comment=BADGE_DEFS.find(b=>b.id==='mozart').comment;
+    if(diff<=2.7 &&!badgesEarned.bat     &&earnBadge('bat')     &&!comment)comment=BADGE_DEFS.find(b=>b.id==='bat').comment;
+    if(diff<=1.0 &&!badgesEarned.robot   &&earnBadge('robot')   &&!comment)comment=BADGE_DEFS.find(b=>b.id==='robot').comment;
+    if(baseFreq<=A3_FREQ){lowFreqCount++;if(lowFreqCount>=3&&!badgesEarned.whale&&earnBadge('whale')&&!comment)comment=BADGE_DEFS.find(b=>b.id==='whale').comment;}
+    return comment;
   }
 
-  // State
-  let practiceMode = false, practiceWarmup = true, selectedPresetIdx = 0;
-  let score = 0, totalCorrect = 0, attempted = 0;
-  let difficulty = 100, lives = 3, lifelinesLeft = 2;
-  let bestDiff = 100, sessionStartDiff = 100, lastCorrectDiff = 100, consecutiveWrong = 0;
-  let answered = false, correctAnswer = null;
-  let lastBaseFreq = null, lastSecondFreq = null;
-  let hasPlayed = false, isFirst = true;
-  let audioCtx = null, advTimer = null;
-  let ll1Used = false, ll2Used = false;
-  let roundLevel = 1;
-  let lowFreqCorrectCount = 0;
-  let streak15 = 0;
-  let badgesEarned = {};
-  let advancedCommentMode = false;
-  let earlyCorrectIndex = 0;
-  let advancedPool = [];
-  let wrongPool = [];
-
-  const $ = id => document.getElementById(id);
-
-  function getCtx() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    return audioCtx;
+  function updateDiffDisplay(){$('diff-pct').textContent=fmtPct(difficulty);}
+  function updateCounters(){
+    if(appMode==='practice'){$('val-left').textContent=attempted;$('val-right').textContent=totalCorrect;}
+    else{$('val-left').textContent=score;$('val-right').textContent=roundLevel;}
   }
-
-  function playTone(freq, t0, dur, ctx) {
-    const osc = ctx.createOscillator(), g = ctx.createGain();
-    osc.connect(g); g.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, t0);
-    g.gain.setValueAtTime(0, t0);
-    g.gain.linearRampToValueAtTime(0.35, t0 + 0.05);
-    g.gain.setValueAtTime(0.35, t0 + dur - 0.05);
-    g.gain.linearRampToValueAtTime(0, t0 + dur);
-    osc.start(t0); osc.stop(t0 + dur);
+  function updateLives(){for(let i=1;i<=3;i++)$('h'+i).className='heart'+(i<=lives?'':' lost');}
+  function updateLifelines(){
+    if(appMode!=='challenge'){$('ll1').style.visibility='hidden';$('ll2').style.visibility='hidden';return;}
+    $('ll1').style.visibility='visible';$('ll2').style.visibility='visible';
+    $('ll1').disabled=ll1Used||!hasPlayed||answered;$('ll2').disabled=ll2Used||!hasPlayed||answered;
+    $('ll1').className='lifeline-btn'+(ll1Used?' used':'');$('ll2').className='lifeline-btn'+(ll2Used?' used':'');
   }
+  function flashRound(){const el=$('metric-right');el.classList.remove('flash-green');void el.offsetWidth;el.classList.add('flash-green');setTimeout(()=>el.classList.remove('flash-green'),750);}
 
-  function playPair(f1, f2) {
-    const ctx = getCtx(), now = ctx.currentTime + 0.05;
-    playTone(f1, now, TONE_DUR, ctx);
-    playTone(f2, now + TONE_DUR + TONE_GAP, TONE_DUR, ctx);
-    return (TONE_DUR + TONE_GAP + TONE_DUR + 0.15) * 1000;
+  function soloNewQ(){
+    answered=false;hasPlayed=false;correctAnswer=Math.random()<0.5?'flat':'sharp';
+    lastBaseFreq=null;lastSecondFreq=null;
+    $('btn-flat').disabled=true;$('btn-sharp').disabled=true;
+    $('btn-flat').className='choice-btn';$('btn-sharp').className='choice-btn';
+    $('feedback').textContent='';$('feedback').className='feedback';
+    $('play-btn').disabled=false;
+    $('status').textContent=isFirst?'press play to hear two tones':'';
+    updateDiffDisplay();updateLifelines();
   }
-
-  function semitoneRatio(pct) { return Math.pow(2, pct / 1200); }
-  function useWarmup() { return !practiceMode || practiceWarmup; }
-
-  function nextDiffAfterCorrect() {
-    if (useWarmup() && totalCorrect < WARMUP.length) return WARMUP[totalCorrect];
-    return Math.max(difficulty * 0.85, 0.1);
+  function soloPlay(){
+    const ratio=semitoneRatio(difficulty);
+    const base=FREQ_MIN+Math.random()*(FREQ_MAX-FREQ_MIN);
+    const second=correctAnswer==='sharp'?base*ratio:base/ratio;
+    lastBaseFreq=base;lastSecondFreq=second;hasPlayed=true;isFirst=false;
+    $('play-btn').disabled=true;$('status').textContent='';
+    const w=playPair(base,second);
+    setTimeout(()=>{if(!answered){$('btn-flat').disabled=false;$('btn-sharp').disabled=false;if(appMode==='challenge')updateLifelines();}},w);
   }
-
-  function getCorrectComment(diffAtAnswer) {
-    // Check if fire badge just earned — handled separately before calling this
-    if (!advancedCommentMode && diffAtAnswer <= ADVANCED_THRESHOLD) {
-      advancedCommentMode = true;
-      advancedPool = shuffle(ADVANCED_CORRECT);
-    }
-    if (!advancedCommentMode) {
-      const msg = EARLY_CORRECT[earlyCorrectIndex % EARLY_CORRECT.length];
-      earlyCorrectIndex++;
-      return msg;
-    } else {
-      if (!advancedPool.length) advancedPool = shuffle(ADVANCED_CORRECT);
-      return advancedPool.pop();
-    }
+  function soloLifeline(which){
+    if(answered)return;
+    if(which===1&&!ll1Used)ll1Used=true;else if(which===2&&!ll2Used)ll2Used=true;else return;
+    lifelinesLeft--;score=Math.max(0,score-25);updateCounters();updateLifelines();
+    $('btn-flat').disabled=true;$('btn-sharp').disabled=true;
+    const w=playPair(lastBaseFreq,lastSecondFreq);
+    setTimeout(()=>{if(!answered){$('btn-flat').disabled=false;$('btn-sharp').disabled=false;updateLifelines();}},w);
   }
-
-  function getWrongComment() {
-    if (!wrongPool.length) wrongPool = shuffle(WRONG_MSGS);
-    return wrongPool.pop();
-  }
-
-  function earnBadge(id) {
-    if (badgesEarned[id]) return false;
-    badgesEarned[id] = true;
-    const def = BADGE_DEFS.find(b => b.id === id);
-    if (!def) return false;
-    const span = document.createElement('span');
-    span.className = 'badge-icon';
-    span.textContent = def.emoji;
-    span.setAttribute('data-tip', def.alt);
-    span.title = def.alt;
-    $('badge-icons').appendChild(span);
-    return true;
-  }
-
-  function checkBadges(diffAtAnswer, baseFreq, isCorrect) {
-    let fireJustEarned = false;
-    if (!isCorrect) {
-      streak15 = 0;
-      return false;
-    }
-    // Diff-based badges
-    if (diffAtAnswer <= 9.8) earnBadge('musician');
-    if (diffAtAnswer <= 5.1) earnBadge('mozart');
-    if (diffAtAnswer <= 2.7) earnBadge('bat');
-    if (diffAtAnswer <= 1.0) earnBadge('robot');
-    // Low freq whale badge
-    if (baseFreq <= A3_FREQ) {
-      lowFreqCorrectCount++;
-      if (lowFreqCorrectCount >= 3) earnBadge('whale');
-    }
-    // Fire streak
-    if (diffAtAnswer <= 15) {
-      streak15++;
-      if (streak15 >= 3 && !badgesEarned['fire']) {
-        earnBadge('fire');
-        fireJustEarned = true;
+  function soloAnswer(choice){
+    if(answered)return;
+    answered=true;$('btn-flat').disabled=true;$('btn-sharp').disabled=true;$('play-btn').disabled=true;updateLifelines();
+    const correct=choice===correctAnswer,diffAt=difficulty,baseAt=lastBaseFreq;
+    (choice==='flat'?$('btn-flat'):$('btn-sharp')).className='choice-btn '+(correct?'correct':'wrong');
+    if(!correct)(correctAnswer==='flat'?$('btn-flat'):$('btn-sharp')).className='choice-btn correct';
+    if(correct){
+      lastCorrectDiff=difficulty;consecutiveWrong=0;totalCorrect++;attempted++;
+      score+=Math.round(100/Math.max(diffAt,0.1));difficulty=nextDiff();bestDiff=Math.min(bestDiff,difficulty);
+      const bc=appMode==='challenge'?checkBadges(diffAt,baseAt,true):null;
+      if(appMode==='challenge'){
+        if(roundLevel<=ROUND_THRESHOLDS.length&&diffAt<=ROUND_THRESHOLDS[roundLevel-1]){roundLevel++;flashRound();}
+        $('feedback').textContent=bc||getCorrectComment(diffAt);
+      }else $('feedback').textContent='correct!';
+      $('feedback').className='feedback good';
+    }else{
+      attempted++;consecutiveWrong++;
+      if(appMode==='challenge')checkBadges(diffAt,baseAt,false);
+      if(appMode==='challenge'){
+        difficulty=consecutiveWrong===1?(difficulty+lastCorrectDiff)/2:lastCorrectDiff;
+        lives--;updateLives();$('feedback').textContent=getWrongComment();
+      }else{
+        if(consecutiveWrong===1)difficulty=(difficulty+lastCorrectDiff)/2;
+        else if(consecutiveWrong===2)difficulty=lastCorrectDiff;
+        else difficulty=Math.min(difficulty*1.3,sessionStartDiff);
+        $('feedback').textContent=correctAnswer==='flat'?'not quite — it was lower':'not quite — it was higher';
       }
-    } else {
-      streak15 = 0;
+      $('feedback').className='feedback bad';
     }
-    return fireJustEarned;
+    updateDiffDisplay();updateCounters();
+    if(appMode==='challenge'&&lives<=0)setTimeout(showSoloOver,1000);
+    else advTimer=setTimeout(soloNewQ,AUTO_MS);
+  }
+  function showSoloOver(){
+    $('main-game').style.display='none';$('game-over').style.display='block';
+    $('go-title').textContent='Game over';$('fo-result-grid').style.display='none';$('share-btn').style.display='';
+    const rc=roundLevel-1;
+    $('final-msg').innerHTML=`You scored <strong>${score}</strong> points and completed <strong>${rc}</strong> round${rc!==1?'s':''}.<br>Best difficulty: <strong>${bestDiff.toFixed(1)}%</strong> of a half step.`;
+    const dd=$('drummer-msg');
+    if(appMode==='challenge'&&roundLevel===1){dd.innerHTML='<div style="font-size:36px;margin:0.5rem 0">🥁</div><div>Are you a drummer?</div>';dd.style.display='block';}
+    else dd.style.display='none';
+  }
+  function shareScore(){
+    const url='https://tonetrainer.app';
+    const txt=`I scored ${score} points and was able to detect up to ${bestDiff.toFixed(1)}% of a half step! Can you beat my score?`;
+    const fb=$('share-feedback');
+    if(navigator.share){navigator.share({title:'Tone Trainer',text:txt,url}).catch(err=>{if(err.name!=='AbortError')tryCopy(txt+' Try it: '+url,fb);});}
+    else tryCopy(txt+' Try it: '+url,fb);
+  }
+  function tryCopy(text,fb){
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(()=>{fb.textContent='copied to clipboard!';setTimeout(()=>fb.textContent='',3000);}).catch(()=>{fb.textContent=text;});}
+    else fb.textContent=text;
+  }
+  function soloRestart(){
+    if(advTimer)clearTimeout(advTimer);
+    score=0;totalCorrect=0;attempted=0;lives=3;lifelinesLeft=2;ll1Used=false;ll2Used=false;
+    consecutiveWrong=0;isFirst=true;roundLevel=1;lowFreqCount=0;streak10=0;badgesEarned={};
+    advMode=false;earlyIdx=0;advPool=[];wrongPool=[];$('badge-icons').innerHTML='';
+    if(appMode==='practice'){const p=PRACTICE_PRESETS[selectedPresetIdx];difficulty=p.value;practiceWarmup=p.warmup;}
+    else difficulty=WARMUP[0];
+    sessionStartDiff=difficulty;lastCorrectDiff=difficulty;bestDiff=difficulty;
+    $('main-game').style.display='block';$('game-over').style.display='none';$('share-feedback').textContent='';
+    updateLives();updateDiffDisplay();updateCounters();soloNewQ();
   }
 
-  function updateDiffDisplay() {
-    const d = difficulty;
-    $('diff-pct').textContent = (d >= 1 ? d.toFixed(1) : d.toFixed(2)) + '%';
-  }
+  /* ══════════════════════════════════
+     FACE OFF STATE
+  ══════════════════════════════════ */
+  let foPlayers=[null,null],foCurrent=0;
+  let foAnswered=false,foCorrectAnswer=null,foLastBase=null,foLastSecond=null;
+  let foHasPlayed=false,foIsFirst=true,foAdvTimer=null;
+  let foCorrectPool=[],foWrongPool=[];
 
-  function updateCounters() {
-    if (practiceMode) {
-      $('val-left').textContent = attempted;
-      $('val-right').textContent = totalCorrect;
-    } else {
-      $('val-left').textContent = score;
-      $('val-right').textContent = roundLevel;
+  function makeFOP(){return{score:0,lives:3,ll0Used:false,ll1Used:false,difficulty:WARMUP[0],lastCorrectDiff:WARMUP[0],consecutiveWrong:0,totalCorrect:0,bestDiff:WARMUP[0],out:false};}
+
+  function foNextDiff(p){if(p.totalCorrect<WARMUP.length)return WARMUP[p.totalCorrect];return Math.max(p.difficulty*0.85,0.1);}
+
+  function foUpdatePanel(i){
+    const p=foPlayers[i];
+    $('fo-score-'+i).textContent=p.score;
+    $('fo-pct-'+i).textContent=fmtPct(p.difficulty);
+    for(let h=0;h<3;h++)$('fo-h'+h+'-'+i).className='fo-heart'+(h<p.lives?'':' lost');
+    const active=foCurrent===i&&!p.out;
+    const ll0=$('fo-ll0-'+i),ll1=$('fo-ll1-'+i);
+    ll0.disabled=p.ll0Used||!foHasPlayed||foAnswered||!active;
+    ll1.disabled=p.ll1Used||!foHasPlayed||foAnswered||!active;
+    ll0.className='fo-replay-btn'+(p.ll0Used?' used':'');
+    ll1.className='fo-replay-btn'+(p.ll1Used?' used':'');
+    $('fo-panel-'+i).className='fo-panel'+(p.out?' out':active?' active':'');
+  }
+  function foUpdateBoth(){foUpdatePanel(0);foUpdatePanel(1);}
+
+  function foNewQ(){
+    foAnswered=false;foHasPlayed=false;foCorrectAnswer=Math.random()<0.5?'flat':'sharp';
+    foLastBase=null;foLastSecond=null;
+    $('fo-btn-flat').disabled=true;$('fo-btn-sharp').disabled=true;
+    $('fo-btn-flat').className='choice-btn';$('fo-btn-sharp').className='choice-btn';
+    $('fo-feedback').textContent='';$('fo-feedback').className='feedback';
+    $('fo-play-btn').disabled=foPlayers[foCurrent].out;
+    $('fo-status').textContent=foIsFirst?'press play to hear two tones':'';
+    $('fo-turn-label').textContent='Player '+(foCurrent+1)+"'s turn";
+    foUpdateBoth();
+  }
+  function foPlay(){
+    const p=foPlayers[foCurrent],ratio=semitoneRatio(p.difficulty);
+    const base=FREQ_MIN+Math.random()*(FREQ_MAX-FREQ_MIN);
+    const second=foCorrectAnswer==='sharp'?base*ratio:base/ratio;
+    foLastBase=base;foLastSecond=second;foHasPlayed=true;foIsFirst=false;
+    $('fo-play-btn').disabled=true;$('fo-status').textContent='';
+    const w=playPair(base,second);
+    setTimeout(()=>{if(!foAnswered){$('fo-btn-flat').disabled=false;$('fo-btn-sharp').disabled=false;foUpdateBoth();}},w);
+  }
+  function foReplay(pi,li){
+    if(foAnswered||pi!==foCurrent)return;
+    const p=foPlayers[pi];
+    if(li===0&&!p.ll0Used)p.ll0Used=true;else if(li===1&&!p.ll1Used)p.ll1Used=true;else return;
+    $('fo-btn-flat').disabled=true;$('fo-btn-sharp').disabled=true;foUpdateBoth();
+    const w=playPair(foLastBase,foLastSecond);
+    setTimeout(()=>{if(!foAnswered){$('fo-btn-flat').disabled=false;$('fo-btn-sharp').disabled=false;foUpdateBoth();}},w);
+  }
+  function foSwitchTurn(){
+    const other=1-foCurrent;
+    if(foPlayers[other].out){
+      // Other player is eliminated — keep current player going
+      foNewQ();return;
     }
+    foCurrent=other;foNewQ();
   }
-
-  function updateLives() {
-    for (let i = 1; i <= 3; i++)
-      $('h' + i).className = 'heart' + (i <= lives ? '' : ' lost');
-  }
-
-  function updateLifelines() {
-    if (practiceMode) {
-      $('ll1').style.visibility = 'hidden';
-      $('ll2').style.visibility = 'hidden';
-      return;
+  function foAnswer(choice){
+    if(foAnswered)return;
+    foAnswered=true;$('fo-btn-flat').disabled=true;$('fo-btn-sharp').disabled=true;$('fo-play-btn').disabled=true;
+    const p=foPlayers[foCurrent],opp=foPlayers[1-foCurrent];
+    const correct=choice===foCorrectAnswer,diffAt=p.difficulty;
+    const oldBestDiff=p.bestDiff;
+    (choice==='flat'?$('fo-btn-flat'):$('fo-btn-sharp')).className='choice-btn '+(correct?'correct':'wrong');
+    if(!correct)(foCorrectAnswer==='flat'?$('fo-btn-flat'):$('fo-btn-sharp')).className='choice-btn correct';
+    if(correct){
+      p.lastCorrectDiff=p.difficulty;p.consecutiveWrong=0;p.totalCorrect++;
+      p.score+=Math.round(100/Math.max(diffAt,0.1));p.difficulty=foNextDiff(p);p.bestDiff=Math.min(p.bestDiff,p.difficulty);
+      // Try context comment first, fall back to general pool
+      const ctx=foContextCorrect(p,opp,oldBestDiff);
+      if(ctx){$('fo-feedback').textContent=ctx;}
+      else{if(!foCorrectPool.length)foCorrectPool=shuffle(FO_CORRECT_MSGS);$('fo-feedback').textContent=foCorrectPool.pop();}
+      $('fo-feedback').className='feedback good';
+    }else{
+      p.consecutiveWrong++;
+      p.difficulty=p.consecutiveWrong===1?(p.difficulty+p.lastCorrectDiff)/2:p.lastCorrectDiff;
+      p.lives--;if(p.lives<=0)p.out=true;
+      // Try context comment first, fall back to general pool
+      const ctx=foContextWrong(p,opp);
+      if(ctx){$('fo-feedback').textContent=ctx;}
+      else{if(!foWrongPool.length)foWrongPool=shuffle(FO_WRONG_MSGS);$('fo-feedback').textContent=foWrongPool.pop();}
+      $('fo-feedback').className='feedback bad';
     }
-    $('ll1').style.visibility = 'visible';
-    $('ll2').style.visibility = 'visible';
-    $('ll1').disabled = ll1Used || !hasPlayed || answered;
-    $('ll2').disabled = ll2Used || !hasPlayed || answered;
-    $('ll1').className = 'lifeline-btn' + (ll1Used ? ' used' : '');
-    $('ll2').className = 'lifeline-btn' + (ll2Used ? ' used' : '');
+    foUpdateBoth();
+    if(foPlayers[0].out&&foPlayers[1].out){setTimeout(showFOOver,1000);return;}
+    foAdvTimer=setTimeout(foSwitchTurn,AUTO_MS);
+  }
+  function showFOOver(){
+    $('faceoff-game').style.display='none';$('game-over').style.display='block';
+    const p0=foPlayers[0],p1=foPlayers[1];
+    // Winner = lowest bestDiff (best ear). Tiebreak by score. True tie if both equal.
+    let wi=-1;
+    if(p0.bestDiff<p1.bestDiff) wi=0;
+    else if(p1.bestDiff<p0.bestDiff) wi=1;
+    else if(p0.score>p1.score) wi=0;
+    else if(p1.score>p0.score) wi=1;
+    // else wi=-1 = tie
+    $('fo-result-grid').style.display='grid';
+    $('fo-result-grid').innerHTML=
+      `<div class="fo-result-card${wi===0?' winner':''}"><div class="fo-result-name">Player 1${wi===0?' 🏆':''}</div><div class="fo-result-score">${p0.score}</div><div class="fo-result-best">best: ${p0.bestDiff.toFixed(1)}%</div></div>`+
+      `<div class="fo-result-card${wi===1?' winner':''}"><div class="fo-result-name">Player 2${wi===1?' 🏆':''}</div><div class="fo-result-score">${p1.score}</div><div class="fo-result-best">best: ${p1.bestDiff.toFixed(1)}%</div></div>`;
+    $('go-title').textContent=wi===-1?"It's a tie!":`Player ${wi+1} wins!`;
+    $('final-msg').textContent='';$('drummer-msg').style.display='none';$('share-btn').style.display='none';
+  }
+  function foRestart(){
+    if(foAdvTimer)clearTimeout(foAdvTimer);
+    foPlayers=[makeFOP(),makeFOP()];foCurrent=0;
+    foAnswered=false;foLastBase=null;foLastSecond=null;foHasPlayed=false;foIsFirst=true;
+    foCorrectPool=[];foWrongPool=[];
+    $('faceoff-game').style.display='block';$('game-over').style.display='none';
+    foUpdateBoth();foNewQ();
   }
 
-  function flashRound() {
-    const el = $('metric-right');
-    el.classList.remove('flash-green');
-    void el.offsetWidth;
-    el.classList.add('flash-green');
-    setTimeout(() => el.classList.remove('flash-green'), 750);
-  }
-
-  function setModeUI() {
-    if (practiceMode) {
-      $('label-left').textContent = 'attempted';
-      $('label-right').textContent = 'correct';
-      $('mid-right').style.visibility = 'hidden';
-      $('practice-start').style.display = 'block';
-      $('badge-section').style.display = 'none';
-    } else {
-      $('label-left').textContent = 'score';
-      $('label-right').textContent = 'round';
-      $('mid-right').style.visibility = 'visible';
-      $('practice-start').style.display = 'none';
-      $('badge-section').style.display = 'block';
-    }
-  }
-
-  function buildPresets() {
-    const grid = $('preset-grid');
-    grid.innerHTML = '';
-    PRACTICE_PRESETS.forEach((p, i) => {
-      const btn = document.createElement('button');
-      btn.className = 'preset-btn' + (i === selectedPresetIdx ? ' selected' : '');
-      btn.textContent = p.label;
-      btn.addEventListener('click', () => {
-        selectedPresetIdx = i;
-        practiceWarmup = PRACTICE_PRESETS[i].warmup;
-        difficulty = PRACTICE_PRESETS[i].value;
-        sessionStartDiff = difficulty; lastCorrectDiff = difficulty;
-        totalCorrect = 0; consecutiveWrong = 0;
-        document.querySelectorAll('.preset-btn').forEach(b => b.className = 'preset-btn');
-        btn.className = 'preset-btn selected';
-        updateDiffDisplay(); updateCounters();
-      });
-      grid.appendChild(btn);
+  /* ══════════════════════════════════
+     MODE SWITCHING
+  ══════════════════════════════════ */
+  function buildPresets(){
+    const grid=$('preset-grid');grid.innerHTML='';
+    PRACTICE_PRESETS.forEach((p,i)=>{
+      const btn=document.createElement('button');
+      btn.className='preset-btn'+(i===selectedPresetIdx?' selected':'');btn.textContent=p.label;
+      btn.addEventListener('click',()=>{
+        selectedPresetIdx=i;practiceWarmup=p.warmup;difficulty=p.value;
+        sessionStartDiff=difficulty;lastCorrectDiff=difficulty;totalCorrect=0;consecutiveWrong=0;
+        document.querySelectorAll('.preset-btn').forEach(b=>b.className='preset-btn');
+        btn.className='preset-btn selected';updateDiffDisplay();updateCounters();
+      });grid.appendChild(btn);
     });
   }
-
-  function newQuestion() {
-    answered = false; hasPlayed = false;
-    correctAnswer = Math.random() < 0.5 ? 'flat' : 'sharp';
-    lastBaseFreq = null; lastSecondFreq = null;
-    $('btn-flat').disabled = true; $('btn-sharp').disabled = true;
-    $('btn-flat').className = 'choice-btn'; $('btn-sharp').className = 'choice-btn';
-    $('feedback').textContent = ''; $('feedback').className = 'feedback';
-    $('play-btn').disabled = false;
-    $('status').textContent = isFirst ? 'press play to hear two tones' : '';
-    updateDiffDisplay(); updateLifelines();
+  function setModeUI(){
+    const isFO=appMode==='faceoff',isPrac=appMode==='practice',isChal=appMode==='challenge';
+    $('btn-challenge').className='mode-btn'+(isChal?' active':'');
+    $('btn-faceoff').className='mode-btn'+(isFO?' active':'');
+    $('btn-practice').className='mode-btn'+(isPrac?' active':'');
+    $('solo-score-row').style.display=isFO?'none':'';
+    $('practice-start').style.display=isPrac?'block':'none';
+    $('main-game').style.display=isFO?'none':'block';
+    $('faceoff-game').style.display=isFO?'block':'none';
+    $('badge-section').style.display=isChal?'block':'none';
+    $('label-left').textContent=isPrac?'attempted':'score';
+    $('label-right').textContent=isPrac?'correct':'round';
+    $('mid-right').style.visibility=isChal?'visible':'hidden';
+  }
+  function switchMode(mode){
+    if(appMode===mode)return;
+    appMode=mode;
+    if(advTimer)clearTimeout(advTimer);
+    if(foAdvTimer)clearTimeout(foAdvTimer);
+    $('game-over').style.display='none';
+    setModeUI();
+    if(mode==='faceoff')foRestart();
+    else{if(mode==='practice')buildPresets();soloRestart();}
   }
 
-  function handlePlay() {
-    const ratio = semitoneRatio(difficulty);
-    const base = FREQ_MIN + Math.random() * (FREQ_MAX - FREQ_MIN);
-    const second = correctAnswer === 'sharp' ? base * ratio : base / ratio;
-    lastBaseFreq = base; lastSecondFreq = second;
-    hasPlayed = true; isFirst = false;
-    $('play-btn').disabled = true;
-    $('status').textContent = '';
-    const waitMs = playPair(base, second);
-    setTimeout(() => {
-      if (!answered) {
-        $('btn-flat').disabled = false; $('btn-sharp').disabled = false;
-        if (!practiceMode) updateLifelines();
-      }
-    }, waitMs);
-  }
+  /* ── events ── */
+  $('btn-challenge').addEventListener('click',()=>switchMode('challenge'));
+  $('btn-faceoff').addEventListener('click',()=>switchMode('faceoff'));
+  $('btn-practice').addEventListener('click',()=>switchMode('practice'));
+  $('play-btn').addEventListener('click',soloPlay);
+  $('ll1').addEventListener('click',()=>soloLifeline(1));
+  $('ll2').addEventListener('click',()=>soloLifeline(2));
+  $('btn-flat').addEventListener('click',()=>soloAnswer('flat'));
+  $('btn-sharp').addEventListener('click',()=>soloAnswer('sharp'));
+  $('fo-play-btn').addEventListener('click',foPlay);
+  $('fo-btn-flat').addEventListener('click',()=>foAnswer('flat'));
+  $('fo-btn-sharp').addEventListener('click',()=>foAnswer('sharp'));
+  $('fo-ll0-0').addEventListener('click',()=>foReplay(0,0));
+  $('fo-ll1-0').addEventListener('click',()=>foReplay(0,1));
+  $('fo-ll0-1').addEventListener('click',()=>foReplay(1,0));
+  $('fo-ll1-1').addEventListener('click',()=>foReplay(1,1));
+  $('restart-btn').addEventListener('click',()=>appMode==='faceoff'?foRestart():soloRestart());
+  $('share-btn').addEventListener('click',shareScore);
 
-  function useLifeline(which) {
-    if (answered) return;
-    if (which === 1 && !ll1Used) ll1Used = true;
-    else if (which === 2 && !ll2Used) ll2Used = true;
-    else return;
-    lifelinesLeft--;
-    score = Math.max(0, score - 25);
-    updateCounters(); updateLifelines();
-    $('btn-flat').disabled = true; $('btn-sharp').disabled = true;
-    const waitMs = playPair(lastBaseFreq, lastSecondFreq);
-    setTimeout(() => {
-      if (!answered) {
-        $('btn-flat').disabled = false; $('btn-sharp').disabled = false;
-        updateLifelines();
-      }
-    }, waitMs);
-  }
-
-  function handleAnswer(choice) {
-    if (answered) return;
-    answered = true;
-    $('btn-flat').disabled = true; $('btn-sharp').disabled = true;
-    $('play-btn').disabled = true;
-    updateLifelines();
-
-    const correct = choice === correctAnswer;
-    const diffAtAnswer = difficulty;
-    const baseAtAnswer = lastBaseFreq;
-
-    (choice === 'flat' ? $('btn-flat') : $('btn-sharp')).className = 'choice-btn ' + (correct ? 'correct' : 'wrong');
-    if (!correct) (correctAnswer === 'flat' ? $('btn-flat') : $('btn-sharp')).className = 'choice-btn correct';
-
-    if (correct) {
-      lastCorrectDiff = difficulty;
-      consecutiveWrong = 0;
-      totalCorrect++;
-      attempted++;
-      score += Math.round(100 / Math.max(diffAtAnswer, 0.1));
-      difficulty = nextDiffAfterCorrect();
-      bestDiff = Math.min(bestDiff, difficulty);
-
-      const fireJustEarned = !practiceMode ? checkBadges(diffAtAnswer, baseAtAnswer, true) : false;
-
-      if (!practiceMode) {
-        // Check round advancement
-        if (roundLevel <= ROUND_THRESHOLDS.length && diffAtAnswer <= ROUND_THRESHOLDS[roundLevel - 1]) {
-          roundLevel++;
-          flashRound();
-        }
-        let comment;
-        if (fireJustEarned) {
-          comment = FIRE_COMMENT;
-        } else {
-          comment = getCorrectComment(diffAtAnswer);
-        }
-        $('feedback').textContent = comment;
-        $('feedback').className = 'feedback good';
-      } else {
-        $('feedback').textContent = 'correct!';
-        $('feedback').className = 'feedback good';
-      }
-
-    } else {
-      attempted++;
-      consecutiveWrong++;
-      if (!practiceMode) checkBadges(diffAtAnswer, baseAtAnswer, false);
-
-      if (!practiceMode) {
-        difficulty = consecutiveWrong === 1
-          ? (difficulty + lastCorrectDiff) / 2
-          : lastCorrectDiff;
-        lives--; updateLives();
-        $('feedback').textContent = getWrongComment();
-      } else {
-        if (consecutiveWrong === 1) difficulty = (difficulty + lastCorrectDiff) / 2;
-        else if (consecutiveWrong === 2) difficulty = lastCorrectDiff;
-        else difficulty = Math.min(difficulty * 1.3, sessionStartDiff);
-        $('feedback').textContent = correctAnswer === 'flat' ? 'not quite — it was lower' : 'not quite — it was higher';
-      }
-      $('feedback').className = 'feedback bad';
-    }
-
-    updateDiffDisplay(); updateCounters();
-
-    if (!practiceMode && lives <= 0) {
-      setTimeout(showGameOver, 1000);
-    } else {
-      advTimer = setTimeout(newQuestion, AUTO_MS);
-    }
-  }
-
-  function showGameOver() {
-    $('main-game').style.display = 'none';
-    $('game-over').style.display = 'block';
-    const roundsCompleted = roundLevel - 1;
-    $('final-msg').innerHTML =
-      `You scored <strong>${score}</strong> points and completed <strong>${roundsCompleted}</strong> round${roundsCompleted !== 1 ? 's' : ''}.<br>` +
-      `Best difficulty: <strong>${bestDiff.toFixed(1)}%</strong> of a half step.`;
-    const drumDiv = $('drummer-msg');
-    if (!practiceMode && roundLevel === 1) {
-      drumDiv.innerHTML = '<div style="font-size:36px;margin:0.5rem 0">🥁</div><div>Are you a drummer?</div>';
-      drumDiv.style.display = 'block';
-    } else {
-      drumDiv.style.display = 'none';
-    }
-  }
-
-  function shareScore() {
-    const url = 'https://tonetrainer.app';
-    const text = `I scored ${score} points and was able to detect up to ${bestDiff.toFixed(1)}% of a half step! Can you beat my score? Try it: ${url}`;
-    const fb = $('share-feedback');
-    if (navigator.share) {
-      navigator.share({ text }).catch(() => tryCopy(text, fb));
-    } else { tryCopy(text, fb); }
-  }
-
-  function tryCopy(text, fb) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(() => {
-        fb.textContent = 'copied to clipboard!';
-        setTimeout(() => fb.textContent = '', 3000);
-      }).catch(() => { fb.textContent = text; });
-    } else { fb.textContent = text; }
-  }
-
-  function restart() {
-    if (advTimer) clearTimeout(advTimer);
-    score = 0; totalCorrect = 0; attempted = 0;
-    lives = 3; lifelinesLeft = 2;
-    ll1Used = false; ll2Used = false;
-    consecutiveWrong = 0; isFirst = true;
-    roundLevel = 1;
-    lowFreqCorrectCount = 0;
-    streak15 = 0;
-    badgesEarned = {};
-    advancedCommentMode = false;
-    earlyCorrectIndex = 0;
-    advancedPool = [];
-    wrongPool = [];
-    $('badge-icons').innerHTML = '';
-    if (practiceMode) {
-      const p = PRACTICE_PRESETS[selectedPresetIdx];
-      difficulty = p.value; practiceWarmup = p.warmup;
-    } else {
-      difficulty = WARMUP[0];
-    }
-    sessionStartDiff = difficulty; lastCorrectDiff = difficulty; bestDiff = difficulty;
-    $('main-game').style.display = 'block';
-    $('game-over').style.display = 'none';
-    $('share-feedback').textContent = '';
-    updateLives(); updateDiffDisplay(); updateCounters(); newQuestion();
-  }
-
-  $('btn-challenge').addEventListener('click', () => {
-    if (practiceMode) {
-      practiceMode = false;
-      $('btn-challenge').className = 'mode-btn active';
-      $('btn-practice').className = 'mode-btn';
-      setModeUI(); restart();
-    }
-  });
-  $('btn-practice').addEventListener('click', () => {
-    if (!practiceMode) {
-      practiceMode = true;
-      $('btn-practice').className = 'mode-btn active';
-      $('btn-challenge').className = 'mode-btn';
-      setModeUI(); buildPresets(); restart();
-    }
-  });
-  $('play-btn').addEventListener('click', handlePlay);
-  $('ll1').addEventListener('click', () => useLifeline(1));
-  $('ll2').addEventListener('click', () => useLifeline(2));
-  $('btn-flat').addEventListener('click', () => handleAnswer('flat'));
-  $('btn-sharp').addEventListener('click', () => handleAnswer('sharp'));
-  $('restart-btn').addEventListener('click', restart);
-  $('share-btn').addEventListener('click', shareScore);
-
-  setModeUI(); updateLives(); updateLifelines(); updateCounters(); newQuestion();
+  setModeUI();updateLives();updateLifelines();updateCounters();soloNewQ();
 })();
 </script>
 </body>
